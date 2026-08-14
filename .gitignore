@@ -11,6 +11,8 @@ out
 dist
 **/*.vsix
 .vscode-test
+extension/bin/
+extension/media/
 .DS_Store
 **/.call/_harness*.py
 **/.call/_hits.json

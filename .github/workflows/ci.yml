@@ -88,6 +88,8 @@ jobs:
         working-directory: webview
       - run: npm ci
         working-directory: extension
+      - run: npm run compile
+        working-directory: extension
       - name: Stage Sidecar and webview into the extension
         shell: bash
         run: |
@@ -95,6 +97,8 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.bin }}" "extension/bin/${{ matrix.bin }}"
           cp webview/dist/webview.js extension/media/
           cp webview/dist/webview.css extension/media/ || true
+          cp README.md extension/README.md
+          cp LICENSE extension/LICENSE
       - run: npx vsce package --no-dependencies -o call-${{ matrix.vsix }}.vsix
         working-directory: extension
       - uses: actions/upload-artifact@v4
