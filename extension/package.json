@@ -1,0 +1,33 @@
+{
+  "name": "call-graph",
+  "displayName": "Call",
+  "description": "Project a codebase as a call Graph and edit from the canvas.",
+  "version": "0.1.0",
+  "publisher": "call",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Visualization"],
+  "activationEvents": ["onCommand:call.openGraph"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "call.openGraph",
+        "title": "Call: Open Graph"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
