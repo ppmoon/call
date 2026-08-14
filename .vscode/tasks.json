@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-dev",
+      "dependsOn": ["build-sidecar", "build-webview", "compile-extension"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "build-sidecar",
+      "type": "shell",
+      "command": "cargo build -p call-sidecar",
+      "group": "build",
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "build-webview",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/webview" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "compile-extension",
+      "type": "shell",
+      "command": "npm run compile",
+      "options": { "cwd": "${workspaceFolder}/extension" },
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  sidecar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace
+      - run: cargo build --workspace
+
+  webview:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webview
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: webview/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: extension/package-lock.json
+      - run: cargo build -p call-sidecar
+      - run: npm ci
+        working-directory: extension
+      - run: npm test
+        working-directory: extension
+        env:
+          CALL_SIDECAR_PATH: ${{ github.workspace }}/target/debug/call-sidecar
+      - run: npm run compile
+        working-directory: extension
