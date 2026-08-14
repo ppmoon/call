@@ -4,9 +4,9 @@
 
 **Blocked by:** 03 — 下钻 + Container 折叠
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 默认过滤标准库与第三方调用；画布上有开关可显示它们
-- [ ] 单层可见 Function Node 超过 30 时自动 Cluster；点击 Cluster 可展开为个体节点
-- [ ] 在一个中等体量的真实 Python 仓库上，从 Entry 起 2 层的初始图可交互（不卡死、节点可读）
-- [ ] 过滤与聚簇规则有 fixture 测试（含「刚好 30 / 31」边界）
+- [x] 默认过滤标准库与第三方调用；画布上有开关可显示它们
+- [x] 单层可见 Function Node 超过 30 时自动 Cluster；点击 Cluster 可展开为个体节点
+- [x] 在一个中等体量的真实 Python 仓库上，从 Entry 起 2 层的初始图可交互（不卡死、节点可读）
+- [x] 过滤与聚簇规则有 fixture 测试（含「刚好 30 / 31」边界）

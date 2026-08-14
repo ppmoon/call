@@ -18,4 +18,22 @@ describe("Graph canvas", () => {
       "Sidecar failed to start",
     );
   });
+
+  it("offers hello-world when the Graph is empty", () => {
+    render(
+      <App
+        handshake={{ status: "ok", version: "0.1.0" }}
+        graph={{
+          nodes: [],
+          edges: [],
+          depth: 2,
+          showExternal: false,
+          empty: true,
+          entries: [],
+        }}
+      />,
+    );
+    expect(screen.getByTestId("empty-state")).toHaveTextContent("No Entry found");
+    expect(screen.getByTestId("empty-state").textContent).toMatch(/hello-world/);
+  });
 });

@@ -1,0 +1,9 @@
+.vscode-test/**
+src/**
+**/*.map
+../**
+!out/**
+!media/**
+!bin/**
+!package.json
+!README.md

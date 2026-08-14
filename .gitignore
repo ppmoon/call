@@ -9,6 +9,12 @@ target
 node_modules
 out
 dist
-*.vsix
+**/*.vsix
 .vscode-test
 .DS_Store
+**/.call/_harness*.py
+**/.call/_hits.json
+**/.call/_proposal.py
+fixtures/**/.call/
+**/__pycache__/
+*.pyc

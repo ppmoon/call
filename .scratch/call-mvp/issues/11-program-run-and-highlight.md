@@ -4,9 +4,9 @@
 
 **Blocked by:** 10 — Node Run：Harness + 参数面板 + 内联输出
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 从当前 Entry 启动 Program Run，复用 10 的 runner 与本机解释器
-- [ ] 运行结束后，被命中的 Function Node 与对应 Call Edge 高亮；未命中的保持默认样式
-- [ ] 运行失败时高亮停在失败节点，并在该节点内联报错
-- [ ] 本票不做边上流式动画
+- [x] 从当前 Entry 启动 Program Run，复用 10 的 runner 与本机解释器
+- [x] 运行结束后，被命中的 Function Node 与对应 Call Edge 高亮；未命中的保持默认样式
+- [x] 运行失败时高亮停在失败节点，并在该节点内联报错
+- [x] 本票不做边上流式动画
