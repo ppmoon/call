@@ -49,3 +49,59 @@ jobs:
           CALL_SIDECAR_PATH: ${{ github.workspace }}/target/debug/call-sidecar
       - run: npm run compile
         working-directory: extension
+
+  vsix:
+    name: vsix (${{ matrix.vsix }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            vsix: linux-x64
+            bin: call-sidecar
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            vsix: win32-x64
+            bin: call-sidecar.exe
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            vsix: darwin-x64
+            bin: call-sidecar
+          - os: macos-14
+            target: aarch64-apple-darwin
+            vsix: darwin-arm64
+            bin: call-sidecar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: cargo build -p call-sidecar --release --target ${{ matrix.target }}
+      - run: npm ci
+        working-directory: webview
+      - run: npm run build
+        working-directory: webview
+      - run: npm ci
+        working-directory: extension
+      - run: npm run compile
+        working-directory: extension
+      - name: Stage Sidecar and webview into the extension
+        shell: bash
+        run: |
+          mkdir -p extension/bin extension/media
+          cp "target/${{ matrix.target }}/release/${{ matrix.bin }}" "extension/bin/${{ matrix.bin }}"
+          cp webview/dist/webview.js extension/media/
+          cp webview/dist/webview.css extension/media/ || true
+          cp README.md extension/README.md
+          cp LICENSE extension/LICENSE
+      - run: npx vsce package --no-dependencies -o call-${{ matrix.vsix }}.vsix
+        working-directory: extension
+      - uses: actions/upload-artifact@v4
+        with:
+          name: call-${{ matrix.vsix }}
+          path: extension/call-${{ matrix.vsix }}.vsix

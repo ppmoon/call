@@ -23,7 +23,64 @@ body,
   border-bottom: 1px solid var(--vscode-panel-border, #333);
 }
 
+.call-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--vscode-panel-border, #333);
+}
+
+.call-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
+.call-sidebar,
+.call-inspector {
+  width: 220px;
+  overflow: auto;
+  padding: 8px;
+  font-size: 12px;
+  border-color: var(--vscode-panel-border, #333);
+  border-style: solid;
+  border-width: 0;
+}
+
+.call-sidebar {
+  border-right-width: 1px;
+}
+
+.call-inspector {
+  border-left-width: 1px;
+}
+
+.call-sidebar button,
+.call-toolbar button,
+.call-inspector button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+  background: var(--vscode-button-background, #3b82f6);
+  color: var(--vscode-button-foreground, #fff);
+  border: 0;
+  padding: 4px 8px;
+}
+
+.call-inspector textarea {
+  width: 100%;
+  min-height: 64px;
+}
+
+.call-empty {
+  padding: 24px;
+}
+
 .call-canvas {
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
 }

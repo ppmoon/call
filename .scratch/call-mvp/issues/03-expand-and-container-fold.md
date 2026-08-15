@@ -4,9 +4,9 @@
 
 **Blocked by:** 02 — Entry 探测 → 首张 Graph
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 点击未展开的 Function Node 懒加载下一层被调节点与 Call Edge，不重构图整张图
-- [ ] 已展开节点可再收起；收起后子图从画布移除（布局上 Pin 的位置保留到重开）
-- [ ] 同模块/同类的函数落在可折叠 Container 内；折叠后 Container 仍保留对外 Call Edge
-- [ ] fixture golden 覆盖「展开一层后的图结构」
+- [x] 点击未展开的 Function Node 懒加载下一层被调节点与 Call Edge，不重构图整张图
+- [x] 已展开节点可再收起；收起后子图从画布移除（布局上 Pin 的位置保留到重开）
+- [x] 同模块/同类的函数落在可折叠 Container 内；折叠后 Container 仍保留对外 Call Edge
+- [x] fixture golden 覆盖「展开一层后的图结构」

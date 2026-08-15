@@ -1,7 +1,14 @@
 //! Sidecar JSON-RPC protocol: LSP-style `Content-Length` framing over stdio.
 
+use crate::graph;
+use crate::meta;
+use crate::protocol::{BuildParams, Pin, RunArg};
+use crate::python::index_workspace;
+use crate::run::{self, NativeRunner};
+use crate::scaffold;
 use serde_json::{json, Value};
 use std::io::{BufRead, ErrorKind, Write};
+use std::path::{Path, PathBuf};
 
 /// Protocol version spoken by this Sidecar. Bump when the JSON-RPC shape changes.
 pub const PROTOCOL_VERSION: u32 = 1;
@@ -68,25 +75,128 @@ pub fn handle_message(body: &str) -> Option<String> {
         _ => return None,
     };
 
-    let response = match method {
-        "ping" | "initialize" => json!({
+    let params = req.get("params").cloned().unwrap_or_else(|| json!({}));
+    let response = match dispatch(method, params) {
+        Ok(result) => json!({
             "jsonrpc": "2.0",
             "id": id,
-            "result": {
-                "version": sidecar_version(),
-                "protocolVersion": PROTOCOL_VERSION,
-            }
+            "result": result,
         }),
-        _ => json!({
+        Err((code, message)) => json!({
             "jsonrpc": "2.0",
             "id": id,
-            "error": {
-                "code": -32601,
-                "message": format!("method not found: {method}"),
-            }
+            "error": { "code": code, "message": message },
         }),
     };
     Some(response.to_string())
+}
+
+fn dispatch(method: &str, params: Value) -> Result<Value, (i32, String)> {
+    match method {
+        "ping" | "initialize" => Ok(json!({
+            "version": sidecar_version(),
+            "protocolVersion": PROTOCOL_VERSION,
+        })),
+        "graph.build" => {
+            let parsed: BuildParams =
+                serde_json::from_value(params).map_err(|e| (-32602, e.to_string()))?;
+            let graph = graph::build(&parsed).map_err(|e| (-32000, e))?;
+            Ok(serde_json::to_value(graph).unwrap())
+        }
+        "graph.symbols" => {
+            let root = req_str(&params, "workspaceRoot")?;
+            let symbols = graph::list_symbols(&root).map_err(|e| (-32000, e))?;
+            Ok(serde_json::to_value(symbols).unwrap())
+        }
+        "meta.load" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            Ok(serde_json::to_value(meta::load_meta(&root)).unwrap())
+        }
+        "meta.pin" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let pin: Pin = serde_json::from_value(params).map_err(|e| (-32602, e.to_string()))?;
+            Ok(serde_json::to_value(meta::upsert_pin(&root, pin).map_err(|e| (-32000, e))?).unwrap())
+        }
+        "meta.runArgs" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let arg: RunArg = serde_json::from_value(params).map_err(|e| (-32602, e.to_string()))?;
+            Ok(serde_json::to_value(meta::upsert_run_args(&root, arg).map_err(|e| (-32000, e))?).unwrap())
+        }
+        "meta.snapshot" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            Ok(serde_json::to_value(meta::snapshot_identities(&root).map_err(|e| (-32000, e))?).unwrap())
+        }
+        "meta.reconcile" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let qn = req_str(&params, "qualifiedName")?;
+            Ok(serde_json::to_value(meta::reconcile(&root, &qn).map_err(|e| (-32000, e))?).unwrap())
+        }
+        "meta.appendPrompt" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let qn = req_str(&params, "qualifiedName")?;
+            let prompt = req_str(&params, "prompt")?;
+            let path = meta::append_prompt(&root, &qn, &prompt).map_err(|e| (-32000, e))?;
+            Ok(json!({ "path": path }))
+        }
+        "edit.extract" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let qn = req_str(&params, "qualifiedName")?;
+            run::extract_function_source(&root, &qn).map_err(|e| (-32000, e))
+        }
+        "run.node" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let qn = req_str(&params, "qualifiedName")?;
+            let args = params
+                .get("argsJson")
+                .and_then(Value::as_str)
+                .unwrap_or("{}");
+            let python = python_from(&params);
+            run::run_node(&NativeRunner, &root, &qn, args, &python).map_err(|e| (-32000, e))
+                .map(|r| serde_json::to_value(r).unwrap())
+        }
+        "run.program" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let entry = req_str(&params, "entry")?;
+            let python = python_from(&params);
+            run::run_program(&NativeRunner, &root, &entry, &python).map_err(|e| (-32000, e))
+                .map(|r| serde_json::to_value(r).unwrap())
+        }
+        "scaffold.helloWorld" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            let language = params
+                .get("language")
+                .and_then(Value::as_str)
+                .unwrap_or("python");
+            let path = scaffold::scaffold(&root, language).map_err(|e| (-32000, e))?;
+            Ok(json!({ "path": path }))
+        }
+        "scaffold.isEmpty" => {
+            let root = PathBuf::from(req_str(&params, "workspaceRoot")?);
+            Ok(json!({ "empty": scaffold::is_empty_of_source(&root) }))
+        }
+        "index.lookup" => {
+            let root = req_str(&params, "workspaceRoot")?;
+            let _ = index_workspace(Path::new(&root)).map_err(|e| (-32000, e))?;
+            Ok(json!({ "ok": true }))
+        }
+        _ => Err((-32601, format!("method not found: {method}"))),
+    }
+}
+
+fn req_str(params: &Value, key: &str) -> Result<String, (i32, String)> {
+    params
+        .get(key)
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| (-32602, format!("missing {key}")))
+}
+
+fn python_from(params: &Value) -> PathBuf {
+    params
+        .get("pythonPath")
+        .and_then(Value::as_str)
+        .map(PathBuf::from)
+        .unwrap_or_else(run::default_python)
 }
 
 pub fn serve(mut input: impl BufRead, mut output: impl Write) -> std::io::Result<()> {

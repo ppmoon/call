@@ -8,6 +8,10 @@ export function defaultSidecarPath(): string {
     return process.env.CALL_SIDECAR_PATH;
   }
   const exe = process.platform === "win32" ? "call-sidecar.exe" : "call-sidecar";
+  const packaged = path.join(__dirname, "..", "bin", exe);
+  if (existsSync(packaged)) {
+    return packaged;
+  }
   return path.join(__dirname, "..", "..", "target", "debug", exe);
 }
 
@@ -44,17 +48,29 @@ export class SidecarClient {
     this.child.kill();
   }
 
-  private request(method: string): Promise<string> {
+  private request(method: string, params: unknown = {}): Promise<string> {
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      this.child.stdin.write(encodeRequest(id, method), (err) => {
+      this.child.stdin.write(encodeRequest(id, method, params), (err) => {
         if (err) {
           this.pending.delete(id);
           reject(err);
         }
       });
     });
+  }
+
+  async rpc<T>(method: string, params: unknown = {}): Promise<T> {
+    const body = await this.request(method, params);
+    const msg = JSON.parse(body) as { error?: { message?: string }; result?: T };
+    if (msg.error) {
+      throw new Error(msg.error.message ?? "JSON-RPC error");
+    }
+    if (msg.result === undefined) {
+      throw new Error(`no result for ${method}`);
+    }
+    return msg.result;
   }
 
   private onData(chunk: Buffer): void {

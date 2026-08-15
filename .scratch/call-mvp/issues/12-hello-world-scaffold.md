@@ -4,9 +4,9 @@
 
 **Blocked by:** 02 — Entry 探测 → 首张 Graph
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 空工程（探测不到 Entry）时画布给出明确空态与「生成 hello-world」动作
-- [ ] 语言选择器默认 Python；生成后工程内有可运行的 Entry，并立即出现 Graph
-- [ ] 不覆盖已有源码；非空但无 Entry 时只提供手动 Entry 选择器，不擅自脚手架
-- [ ] Python 模板能被 02 的构图路径消费（同一套探测，不走特例解析器）
+- [x] 空工程（探测不到 Entry）时画布给出明确空态与「生成 hello-world」动作
+- [x] 语言选择器默认 Python；生成后工程内有可运行的 Entry，并立即出现 Graph
+- [x] 不覆盖已有源码；非空但无 Entry 时只提供手动 Entry 选择器，不擅自脚手架
+- [x] Python 模板能被 02 的构图路径消费（同一套探测，不走特例解析器）

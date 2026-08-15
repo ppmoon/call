@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "publisher": "call",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ppmoon/call.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -17,16 +21,41 @@
         "command": "call.openGraph",
         "title": "Call: Open Graph"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Call",
+      "properties": {
+        "call.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "BYO LLM API key. Code is only sent when you start an edit."
+        },
+        "call.openaiBaseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1"
+        },
+        "call.openaiModel": {
+          "type": "string",
+          "default": "gpt-4.1-mini"
+        },
+        "call.useMockLlm": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the recorded mock LLM (tests / offline Wow Script)."
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p .",
     "watch": "tsc -watch -p .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "package": "npm run compile && vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.6.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
